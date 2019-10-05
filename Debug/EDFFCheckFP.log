@@ -1,0 +1,9 @@
+﻿  analyzeFP.cpp
+  checkFP.cpp
+E:\Code\C++\EDFFCheckFP\EDFFCheckFP\analyzeFP.cpp(188,1): fatal error C1010: Unerwartetes Dateiende während der Suche nach dem vorkompilierten Header. Haben Sie möglicherweise vergessen, im Quellcode "#include "pch.h"" einzufügen?
+  edffFPCheck.cpp
+E:\Code\C++\EDFFCheckFP\EDFFCheckFP\checkFP.cpp(26,1): fatal error C1010: Unerwartetes Dateiende während der Suche nach dem vorkompilierten Header. Haben Sie möglicherweise vergessen, im Quellcode "#include "pch.h"" einzufügen?
+  stdafx.cpp
+E:\Code\C++\EDFFCheckFP\EDFFCheckFP\edffFPCheck.cpp(1,1): fatal error C1010: Unerwartetes Dateiende während der Suche nach dem vorkompilierten Header. Haben Sie möglicherweise vergessen, im Quellcode "#include "pch.h"" einzufügen?
+  Code wird generiert...
+E:\Code\C++\EDFFCheckFP\EDFFCheckFP\stdafx.cpp(2,1): fatal error C1010: Unerwartetes Dateiende während der Suche nach dem vorkompilierten Header. Haben Sie möglicherweise vergessen, im Quellcode "#include "pch.h"" einzufügen?
