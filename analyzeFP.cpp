@@ -12,7 +12,6 @@ CcheckFPPlugin::CcheckFPPlugin(void) :CPlugIn(EuroScopePlugIn::COMPATIBILITY_COD
 
 		// Register Tag Item "FlightPlan Check"
 	RegisterTagItemType("EDFF FlighPlan Check", TAG_ITEM_FPCHECK);
-
 }
 
 	// Run on Plugin destruction, Ie. Closing EuroScope or unloading plugin
@@ -25,6 +24,7 @@ CcheckFPPlugin::~CcheckFPPlugin()
 	Custom Functions
 */
 
+
 void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
 	if ( ItemCode == TAG_ITEM_FPCHECK )
@@ -36,6 +36,7 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 
 		if ( FlightPlanString.find("OBOKA") != string::npos )
 		{
+			bool flash = true;
 			if ((RFL / 1000) % 2 == 0)
 			{
 				//Even
@@ -47,6 +48,7 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 				//Odd
 				*pRGB = RGB(190, 0, 0);
 				strcpy_s(sItemString, 16, "FPL");
+
 			}
 		}
 		else
@@ -180,8 +182,5 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 
 	}
 }
-
-
-
 
 // Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"

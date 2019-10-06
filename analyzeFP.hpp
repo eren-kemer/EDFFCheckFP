@@ -4,6 +4,7 @@
 #include <string>
 #include "Constant.hpp"
 #include <fstream>
+#include <vector>
 
 #define MY_PLUGIN_NAME      "EDFF Check FlightPlan"
 #define MY_PLUGIN_VERSION   "1.0"
@@ -34,8 +35,5 @@ public:
 		int* pColorCode,
 		COLORREF* pRGB,
 		double* pFontSize);
-
-private:
-	void readTextFile();
 };
 
