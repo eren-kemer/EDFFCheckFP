@@ -1,9 +1,16 @@
 ﻿  analyzeFP.cpp
-  checkFP.cpp
-     Bibliothek "E:\Code\C++\EDFFCheckFP\Release\EDFFCheckFP.lib" und Objekt "E:\Code\C++\EDFFCheckFP\Release\EDFFCheckFP.exp" werden erstellt.
+f:\test\edffcheckfp\analyzefp.cpp(75): warning C4305: "Argument": Verkürzung von "int" in "const _Elem"
+          with
+          [
+              _Elem=char
+          ]
+f:\test\edffcheckfp\analyzefp.cpp(75): warning C4309: "Argument": Verkürzung eines konstanten Wertes
+f:\test\edffcheckfp\analyzefp.cpp(172): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
+f:\test\edffcheckfp\analyzefp.cpp(246): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
+     Bibliothek "F:\Test\EDFFCheckFP\Release\EDFFCheckFP.lib" und Objekt "F:\Test\EDFFCheckFP\Release\EDFFCheckFP.exp" werden erstellt.
   Code wird generiert.
-  40 of 76 functions (52.6%) were compiled, the rest were copied from previous compilation.
+  1 of 373 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    12 functions had inline decision re-evaluated but remain unchanged
+    4 functions had inline decision re-evaluated but remain unchanged
   Codegenerierung ist abgeschlossen.
-  EDFFCheckFP.vcxproj -> E:\Code\C++\EDFFCheckFP\Release\EDFFCheckFP.dll
+  EDFFCheckFP.vcxproj -> F:\Test\EDFFCheckFP\Release\EDFFCheckFP.dll

@@ -25,6 +25,7 @@ public:
 	CcheckFPPlugin();
 	virtual ~CcheckFPPlugin();
 
+	virtual void getSids();
 
 	//Define OnGetTagItem function
 	virtual void OnGetTagItem(CFlightPlan FlightPlan,
@@ -35,5 +36,15 @@ public:
 		int* pColorCode,
 		COLORREF* pRGB,
 		double* pFontSize);
+
+	virtual bool OnCompileCommand(const char * sCommandLine);
+
+	virtual void debugMessage(string type, string message);
+
+	virtual void sendMessage(string type, string message);
+
+	virtual void checkFPDetail();
+
+	virtual void OnTimer(int Count);
 };
 

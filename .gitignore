@@ -1,0 +1,8 @@
+
+*.db
+.vs/EDFFCheckFP/v15/.suo
+*.ipch
+*.obj
+*.tlog
+Release/EDFFCheckFP.tlog/EDFFCheckFP.lastbuildstate
+*.log

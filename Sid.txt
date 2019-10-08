@@ -1,9 +1,15 @@
-OBOKA, E, -, -
-MARUN, E, -, -
-TOBAK, O, -, -
-SOBRA, E, 250, min
-ULKIG, E, 250, min
-ANEKI, O, -, -
-CINDY, O, -, -
-KOMIB, O, -, -
-SULUS, O, -, -
+// ICAO of airport, SID, Even or Odd, Minimum Flight Level, Maximum Flight Level
+//AAAA;DASID;Even;100;400
+EDDF;OBOKA;Even;0;0
+EDDF;MARUN;Even;0;0
+EDDF;TOBAK;Odd;0;0
+EDDF;SOBRA;Even;250;0
+EDDF;ULKIG;Even;250;0
+EDDF;ANEKI;Odd;0;0
+EDDF;CINDY;Odd;0;0
+EDDF;KOMIB;Odd;0;0
+EDDF;SULUS;Odd;0;0
+EDDS;VESID;Even;0;0
+EDDS;OBIKA;Even;200;0
+EDDS;TAGIK;Even;0;240
+EDDS;DKB;Odd;0;0
