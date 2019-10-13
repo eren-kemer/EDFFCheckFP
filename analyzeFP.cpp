@@ -68,7 +68,7 @@ void CcheckFPPlugin::getSids() {
 	sidDatei.open(pfad, ios::in);
 	if (!sidDatei) {	// Display Error, if something bad happened.
 		string error{ pfad };
-		error += "couldn't be opened!";
+		error += " couldn't be opened!";
 		sendMessage("Error", error.c_str());
 	}
 
@@ -89,12 +89,12 @@ void CcheckFPPlugin::getSids() {
 		debugMessage("Reading", read);
 		debugMessage("Readbuffer", readbuffer);
 		if (readbuffer == airport) {
-			sid[0] = read;  // sid[0] = "EDDF;OBOKA;E;0;0";
-			sid[0].erase(0, sid[0].find_first_of(';') + 1);   //sid[0] = "OBOKA;E;0;0";
+			sid[0] = read;  // sid[0] = "EDDF;OBOKA;Even;0;0";
+			sid[0].erase(0, sid[0].find_first_of(';') + 1);   //sid[0] = "OBOKA;Even;0;0";
 			debugMessage("Sid[0]", sid[0]);
 			sid[1] = sid[0];
 			sid[0].erase(sid[0].find_first_of(';'), sid[0].length());   //sid[0] = "OBOKA";
-			sid[1].erase(0, sid[1].find_first_of(';') + 1);	//sid[1] = E;0;0";
+			sid[1].erase(0, sid[1].find_first_of(';') + 1);	//sid[1] = Even;0;0";
 			debugMessage("Sid[1]", sid[1]);
 			sid[2] = sid[1];
 			sid[1].erase(sid[1].find_first_of(';'), sid[1].length());
@@ -118,7 +118,6 @@ void CcheckFPPlugin::getSids() {
 				sidContainer += sid[1];
 				sidContainer += sid[2];
 				sidContainer += sid[3];
-				sidContainer += sid[4];
 
 				debugMessage("Adding", sidContainer);
 			}
@@ -277,6 +276,9 @@ void CcheckFPPlugin::checkFPDetail() {
 				sendMessage(flightPlan.GetCallsign(), "Passed Odd");
 				passed = true;
 			}
+			else {
+				sendMessage(flightPlan.GetCallsign(), "Failed Even/Odd");
+			}
 			if (sidMin.at(i) != 0) {
 				if ((RFL / 100) >= sidMin.at(i)) {
 					sendMessage(flightPlan.GetCallsign(), "Passed Min");
@@ -309,10 +311,10 @@ void CcheckFPPlugin::OnTimer(int Counter) {
 	// Loading proper Sids, when logged in
 	if (GetConnectionType() != CONNECTION_TYPE_NO && !initialSidLoad) {
 		string callsign{ ControllerMyself().GetCallsign() };
-		if (callsign.find_first_of('_O') != 3) {
-			getSids();		
-		} else {
+		if (callsign.find_first_of('_O') == 3) {
 			sendMessage("Observer Mode, no SIDs loaded");
+		} else {	
+			getSids();
 		}
 		initialSidLoad = true;
 	} else if (GetConnectionType() == CONNECTION_TYPE_NO && initialSidLoad) {
