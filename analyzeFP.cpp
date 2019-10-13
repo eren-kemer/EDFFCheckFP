@@ -21,10 +21,11 @@ using namespace EuroScopePlugIn;
 CcheckFPPlugin::CcheckFPPlugin(void) :CPlugIn(EuroScopePlugIn::COMPATIBILITY_CODE, MY_PLUGIN_NAME, MY_PLUGIN_VERSION, MY_PLUGIN_DEVELOPER, MY_PLUGIN_COPYRIGHT)
 {
 		// Private Message giving more information on Plugin, Version number etc. 
-	//DisplayUserMessage(MY_PLUGIN_NAME, MY_PLUGIN_NAME , PLUGIN_WELCOME_MESSAGE " - Version: " PLUGIN_VERSION, true, true, true, true, true);
+	//DisplayUserMessage(MY_PLUGIN_NAME, MY_PLUGIN_NAME , PLUGIN_WELCOME_MESSAGE " - Version: " MY_PLUGIN_VERSION, true, true, true, true, true);
 
 		// Register Tag Item "FlightPlan Check"
-	RegisterTagItemType("EDFF FlighPlan Check", TAG_ITEM_FPCHECK);
+	RegisterTagItemType("FlightPlan Check", TAG_ITEM_FPCHECK);
+	RegisterTagItemFunction("Check FP", TAG_FUNC_CHECKFP_MENU);
 
 	// Get Path of the Sid.txt
 	GetModuleFileNameA(HINSTANCE(&__ImageBase), DllPathFile, sizeof(DllPathFile));
@@ -58,16 +59,20 @@ void CcheckFPPlugin::sendMessage(string type, string message) {
 	DisplayUserMessage("checkFP", type.c_str(), message.c_str(), true, true, true, true, false);
 }
 
+void CcheckFPPlugin::sendMessage(string message) {
+	DisplayUserMessage("Message", "checkFP", message.c_str(), true, true, true, false, false);
+}
+
 // Get data from sid.txt
 void CcheckFPPlugin::getSids() {
 	sidDatei.open(pfad, ios::in);
 	if (!sidDatei) {	// Display Error, if something bad happened.
 		string error{ pfad };
 		error += "couldn't be opened!";
-		DisplayUserMessage("EDFF Check FP", "Error", error.c_str(), true, true, true, true, true);
+		sendMessage("Error", error.c_str());
 	}
 
-	DisplayUserMessage("Message", "EDFF Check FP", "Loading Sids...", true, true, true, false, false);
+	sendMessage("Loading Sids...");
 	string read, readbuffer;
 	string sid[4];			// 0 = Name, 1 = Even/Odd, 2 = Min FL, 3 = Max FL
 	string airport{ ControllerMyself().GetCallsign() };
@@ -124,7 +129,7 @@ void CcheckFPPlugin::getSids() {
 	string sidCount{ "SID loading finished: " };
 	sidCount += to_string(sidName.size());
 	sidCount += " SIDs loaded.";
-	DisplayUserMessage("Message", "EDFF Check FP", sidCount.c_str(), true, true, true, false, false);
+	sendMessage(sidCount.c_str());
 
 	// Output of all vectors with their data in it
 	if (debugMode) {
@@ -159,6 +164,15 @@ void CcheckFPPlugin::getSids() {
 	}
 }
 
+void CcheckFPPlugin::OnFunctionCall(int FunctionId, const char * ItemString, POINT Pt, RECT Area) {
+	if (FunctionId == TAG_FUNC_CHECKFP_MENU) {
+		OpenPopupList(Area, "Check FP", 1);
+		AddPopupListElement("Show Checks", "", TAG_FUNC_CHECKFP_CHECK, false, 2, false);
+	}
+	if (FunctionId == TAG_FUNC_CHECKFP_CHECK) {
+		checkFPDetail();
+	}
+}
 
 void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
@@ -179,14 +193,14 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 					passed = true;
 				}
 				if (sidMin.at(i) != 0) {
-					if ((RFL / 1000) >= sidMin.at(i)) {
+					if ((RFL / 100) >= sidMin.at(i)) {
 						passed = true;
 					} else {
 						passed = false;
 					}
 				}
 				if (sidMax.at(i) != 0) {
-					if ((RFL / 1000) <= sidMax.at(i)) {
+					if ((RFL / 100) <= sidMax.at(i)) {
 						passed = true;
 					}
 					else {
@@ -228,6 +242,10 @@ bool CcheckFPPlugin::OnCompileCommand(const char * sCommandLine) {
 		}
 		return true;
 	}
+	if (startsWith(".checkFP load", sCommandLine)) {
+		// ToDo: Destructing the command and parse the Airport to the getSid-Function
+		return true;
+	}
 	if (startsWith(".checkFP check", sCommandLine))
 	{
 		checkFPDetail();
@@ -259,7 +277,7 @@ void CcheckFPPlugin::checkFPDetail() {
 				passed = true;
 			}
 			if (sidMin.at(i) != 0) {
-				if ((RFL / 1000) >= sidMin.at(i)) {
+				if ((RFL / 100) >= sidMin.at(i)) {
 					sendMessage(flightPlan.GetCallsign(), "Passed Min");
 					passed = true;
 				}
@@ -269,7 +287,7 @@ void CcheckFPPlugin::checkFPDetail() {
 				}
 			}
 			if (sidMax.at(i) != 0) {
-				if ((RFL / 1000) <= sidMax.at(i)) {
+				if ((RFL / 100) <= sidMax.at(i)) {
 					sendMessage(flightPlan.GetCallsign(), "Passed Max");
 					passed = true;
 				}

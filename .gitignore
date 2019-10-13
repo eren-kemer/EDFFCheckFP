@@ -6,3 +6,4 @@
 *.tlog
 Release/EDFFCheckFP.tlog/EDFFCheckFP.lastbuildstate
 *.log
+*.opendb
