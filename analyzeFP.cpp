@@ -118,7 +118,6 @@ void CcheckFPPlugin::getSids() {
 				sidContainer += sid[1];
 				sidContainer += sid[2];
 				sidContainer += sid[3];
-				sidContainer += sid[4];
 
 				debugMessage("Adding", sidContainer);
 			}
