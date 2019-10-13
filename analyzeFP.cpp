@@ -174,6 +174,7 @@ void CcheckFPPlugin::OnFunctionCall(int FunctionId, const char * ItemString, POI
 	}
 }
 
+// Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
 void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarget, int ItemCode, int TagData, char sItemString[16], int* pColorCode, COLORREF* pRGB, double* pFontSize)
 {
 	if (ItemCode == TAG_ITEM_FPCHECK)
@@ -304,12 +305,15 @@ void CcheckFPPlugin::checkFPDetail() {
 	}
 }
 
-// Get FlightPlan, and therefore get the first waypoint of the flightplan (ie. SID). Check if the (RFL/1000) corresponds to the SID Min FL and report output "OK" or "FPL"
-
 void CcheckFPPlugin::OnTimer(int Counter) {
 	// Loading proper Sids, when logged in
 	if (GetConnectionType() != CONNECTION_TYPE_NO && !initialSidLoad) {
-		getSids();
+		string callsign{ ControllerMyself().GetCallsign() };
+		if (callsign.find_first_of('_O') != 3) {
+			getSids();		
+		} else {
+			sendMessage("Observer Mode, no SIDs loaded");
+		}
 		initialSidLoad = true;
 	} else if (GetConnectionType() == CONNECTION_TYPE_NO && initialSidLoad) {
 		sidName.clear();
