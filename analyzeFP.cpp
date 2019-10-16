@@ -64,7 +64,7 @@ void CcheckFPPlugin::sendMessage(string message) {
 }
 
 // Get data from sid.txt
-void CcheckFPPlugin::getSids() {
+void CcheckFPPlugin::getSids(string airport) {
 	sidDatei.open(pfad, ios::in);
 	if (!sidDatei) {	// Display Error, if something bad happened.
 		string error{ pfad };
@@ -75,13 +75,12 @@ void CcheckFPPlugin::getSids() {
 	sendMessage("Loading Sids...");
 	string read, readbuffer;
 	string sid[4];			// 0 = Name, 1 = Even/Odd, 2 = Min FL, 3 = Max FL
-	string airport{ ControllerMyself().GetCallsign() };
-	airport.resize(4);	// Take e.g. "EDDF_TWR", or "EDDF_N_APP" and make it to "EDDF"
-	if (airport.find_first_of('_O') == 3) {	// Test if logged in as observer, defaulting to EDDF
-		airport = "EDDF";	// Standard this to EDDF for testing purposes
+	if (airport == "") {
+		airport = ControllerMyself().GetCallsign();
 	}
+	airport.resize(4);	// Take e.g. "EDDF_TWR", or "EDDF_N_APP" and make it to "EDDF"
 	sendMessage("Loading", airport);
-	// To-Do: override, if there is a different callsign, e.g. EDGG_E_CTR => getSids(string airportOverride) => airport = airportOverride => function from console, maybe with safing setting
+	// To-Do: safing setting for multiple airports
 
 	while (getline(sidDatei, read)) {	// Read the line! Love isn't always on time!
 		readbuffer = read;
@@ -105,6 +104,7 @@ void CcheckFPPlugin::getSids() {
 			sid[3].erase(0, sid[3].find_first_of(';') + 1);
 			debugMessage("Sid[3]", sid[3]);
 			//sid[3].erase(sid[3].find_first_of(';'), sid[3].length());
+			// To-Do: conditional SIDs
 
 			// Adding all the data to the vectors
 			sidName.push_back(sid[0]);
@@ -163,6 +163,93 @@ void CcheckFPPlugin::getSids() {
 	}
 }
 
+vector<string> CcheckFPPlugin::validizeSid() {
+	vector<string> returnValid{};		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
+	CFlightPlan flightPlan = FlightPlanSelectASEL();
+	string FlightPlanString = flightPlan.GetFlightPlanData().GetRoute();
+	int RFL = flightPlan.GetFlightPlanData().GetFinalAltitude();
+	returnValid.push_back(flightPlan.GetCallsign());
+	bool valid{ false };
+	for (int i = 0; i < sidName.size(); i++) {
+		bool passed[3]{ false };
+		if (FlightPlanString.find(sidName.at(i)) != string::npos) {
+			valid = true;
+			returnValid.push_back("Valid");	
+			returnValid.push_back(sidName.at(i));
+			if (sidEven.at(i) == "Even") {
+				if ((RFL / 1000) % 2 == 0) {
+					returnValid.push_back("Passed Even");
+					passed[0] = true;
+				} else {
+					returnValid.push_back("Failed Even");
+				}
+			}
+			else if (sidEven.at(i) == "Odd") {
+				if ((RFL / 1000) % 2 != 0) {
+					returnValid.push_back("Passed Odd");
+					passed[0] = true;
+				} else {
+					returnValid.push_back("Failed Odd");
+				}
+			}
+			else if (sidEven.at(i) != "Even" && sidEven.at(i) != "Odd") {
+				string errorText{ "Config Error for Even/Odd on SID: " };
+				errorText += sidName.at(i);
+				sendMessage("Error", errorText);
+				returnValid.push_back("Config Error for Even/Odd on this SID!");
+			}
+			if (sidMin.at(i) != 0) {
+				if ((RFL / 100) >= sidMin.at(i)) {
+					returnValid.push_back("Passed Minimum Flight Level");
+					passed[1] = true;
+				}
+				else {
+					returnValid.push_back("Failed Minimum Flight Level");
+				}
+			} else {
+				returnValid.push_back("No Minimum Flight Level");
+				passed[1] = true;
+			}
+			if (sidMax.at(i) != 0) {
+				if ((RFL / 100) <= sidMax.at(i)) {
+					returnValid.push_back("Passed Maximum Flight Level");
+					passed[2] = true;
+				}
+				else {
+					returnValid.push_back("Failed Maximum Flight Level");
+				}
+			} else {
+				returnValid.push_back("No Maximum Flight Level");
+				passed[2] = true;
+			}
+			bool passedVeri{ false };
+			for (int i = 0; i < 3; i++) {
+				if (passed[i])
+				{
+					passedVeri = true;
+				} else {
+					passedVeri = false;
+					break;
+				}
+			}
+			if (passedVeri) {
+				returnValid.push_back("Passed");
+			} else {
+				returnValid.push_back("Failed");
+			}
+			break;
+		}
+	}
+	if (!valid) {
+		returnValid.push_back("Invalid");
+		returnValid.push_back("No valid SID found!");
+		for (int i = 0; i < 6; i++) {
+			returnValid.push_back("No");
+		}
+	}
+	return returnValid;
+}
+
 void CcheckFPPlugin::OnFunctionCall(int FunctionId, const char * ItemString, POINT Pt, RECT Area) {
 	if (FunctionId == TAG_FUNC_CHECKFP_MENU) {
 		OpenPopupList(Area, "Check FP", 1);
@@ -184,31 +271,8 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 		*pColorCode = TAG_COLOR_RGB_DEFINED;
 
 		for (int i = 0; i < sidName.size(); i++) {
-			bool passed{ false };
-			if (FlightPlanString.find(sidName.at(i)) != string::npos) {
-				if (((RFL / 1000) % 2 == 0) && (sidEven.at(i) == "Even")) {
-					passed = true;
-				} 
-				else if (((RFL / 1000) % 2 != 0) && (sidEven.at(i) == "Odd")) {
-					passed = true;
-				}
-				if (sidMin.at(i) != 0) {
-					if ((RFL / 100) >= sidMin.at(i)) {
-						passed = true;
-					} else {
-						passed = false;
-					}
-				}
-				if (sidMax.at(i) != 0) {
-					if ((RFL / 100) <= sidMax.at(i)) {
-						passed = true;
-					}
-					else {
-						passed = false;
-					}
-				}
-			}
-			if (passed) {
+			vector<string> messageBuffer{ validizeSid()};		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
+			if (messageBuffer.at(6) == "Passed") {
 				*pRGB = TAG_GREEN;
 				strcpy_s(sItemString, 16, "OK!");
 				break;
@@ -225,6 +289,7 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 bool CcheckFPPlugin::OnCompileCommand(const char * sCommandLine) {
 	if (startsWith(".checkFP reload", sCommandLine))
 	{
+		sendMessage("Unloading all loaded SIDs...");
 		sidName.clear();
 		sidEven.clear();
 		sidMin.clear();
@@ -243,7 +308,9 @@ bool CcheckFPPlugin::OnCompileCommand(const char * sCommandLine) {
 		return true;
 	}
 	if (startsWith(".checkFP load", sCommandLine)) {
-		// ToDo: Destructing the command and parse the Airport to the getSid-Function
+		string buffer{ sCommandLine };
+		buffer.erase(0, 14);
+		getSids(buffer);
 		return true;
 	}
 	if (startsWith(".checkFP check", sCommandLine))
@@ -255,56 +322,24 @@ bool CcheckFPPlugin::OnCompileCommand(const char * sCommandLine) {
 }
 
 // Sends to you, which checks were failed and which were passed on the selected aircraft
-void CcheckFPPlugin::checkFPDetail() {
-	CFlightPlan flightPlan = FlightPlanSelectASEL();
-	string FlightPlanString = flightPlan.GetFlightPlanData().GetRoute();
-	int RFL = flightPlan.GetFlightPlanData().GetFinalAltitude();
-	sendMessage(flightPlan.GetCallsign(), "Checking");
-	bool valid{ false };
-	for (int i = 0; i < sidName.size(); i++) {
-		bool passed{ false };
-		if (FlightPlanString.find(sidName.at(i)) != string::npos) {
-			valid = true;
-			string sidFound{ "Found: " };
-			sidFound += sidName.at(i);
-			sendMessage(flightPlan.GetCallsign(), sidFound);
-			if (((RFL / 1000) % 2 == 0) && (sidEven.at(i) == "Even")) {
-				sendMessage(flightPlan.GetCallsign(), "Passed Even");
-				passed = true;
-			}
-			else if (((RFL / 1000) % 2 != 0) && (sidEven.at(i) == "Odd")) {
-				sendMessage(flightPlan.GetCallsign(), "Passed Odd");
-				passed = true;
-			}
-			else {
-				sendMessage(flightPlan.GetCallsign(), "Failed Even/Odd");
-			}
-			if (sidMin.at(i) != 0) {
-				if ((RFL / 100) >= sidMin.at(i)) {
-					sendMessage(flightPlan.GetCallsign(), "Passed Min");
-					passed = true;
-				}
-				else {
-					sendMessage(flightPlan.GetCallsign(), "Failed Min");
-					passed = false;
-				}
-			}
-			if (sidMax.at(i) != 0) {
-				if ((RFL / 100) <= sidMax.at(i)) {
-					sendMessage(flightPlan.GetCallsign(), "Passed Max");
-					passed = true;
-				}
-				else {
-					sendMessage(flightPlan.GetCallsign(), "Failed Max");
-					passed = false;
-				}
-			}
-			break;
+void CcheckFPPlugin::checkFPDetail() {	
+	vector<string> messageBuffer{ validizeSid() };		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
+	sendMessage(messageBuffer.at(0), "Checking...");
+	string buffer{ messageBuffer.at(1) };
+	if (messageBuffer.at(1) == "Valid") {
+		buffer += ", found SID: ";
+		for (int i = 2; i < 6; i++) {
+			buffer += messageBuffer.at(i);
+			buffer += ", ";
 		}
+		buffer += messageBuffer.at(6);
+		buffer += " FlightPlan Check. Check complete.";
+	} else {
+		buffer += " ";
+		buffer += messageBuffer.at(2);
+		buffer += " Check complete.";
 	}
-	if (!valid) {
-		sendMessage(flightPlan.GetCallsign(), "No valid SID found");
-	}
+	sendMessage(messageBuffer.at(0), buffer);
 }
 
 void CcheckFPPlugin::OnTimer(int Counter) {
@@ -314,7 +349,7 @@ void CcheckFPPlugin::OnTimer(int Counter) {
 		if (callsign.find_first_of('_O') == 3) {
 			sendMessage("Observer Mode, no SIDs loaded");
 		} else {	
-			getSids();
+			getSids("");
 		}
 		initialSidLoad = true;
 	} else if (GetConnectionType() == CONNECTION_TYPE_NO && initialSidLoad) {

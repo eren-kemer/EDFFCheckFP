@@ -7,9 +7,9 @@
 #include <vector>
 
 #define MY_PLUGIN_NAME      "EDFF Check FlightPlan"
-#define MY_PLUGIN_VERSION   "1.2"
+#define MY_PLUGIN_VERSION   "1.3"
 #define MY_PLUGIN_DEVELOPER "Nikolas Goerlitz, Jan Fries"
-#define MY_PLUGIN_COPYRIGHT "GPL v4"
+#define MY_PLUGIN_COPYRIGHT "GPL v3"
 #define MY_PLUGIN_VIEW_AVISO  "Check FlightPlan Plugin"
 
 #define PLUGIN_WELCOME_MESSAGE	"Willkommen beim RG-Frankfurt Flugplan-RFL checker"
@@ -24,7 +24,9 @@ public:
 	CcheckFPPlugin();
 	virtual ~CcheckFPPlugin();
 
-	virtual void getSids();
+	virtual void getSids(string airport);
+
+	virtual vector<string> validizeSid();
 
 	virtual void OnFunctionCall(int FunctionId, const char * ItemString, POINT Pt, RECT Area);
 
