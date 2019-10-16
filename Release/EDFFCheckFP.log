@@ -1,16 +1,16 @@
 ﻿  analyzeFP.cpp
-f:\test\edffcheckfp\analyzefp.cpp(173): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-f:\test\edffcheckfp\analyzefp.cpp(273): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
-f:\test\edffcheckfp\analyzefp.cpp(349): warning C4305: "Argument": Verkürzung von "int" in "const _Elem"
+f:\test\edffcheckfp\analyzefp.cpp(176): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
+f:\test\edffcheckfp\analyzefp.cpp(280): warning C4018: "<": Konflikt zwischen "signed" und "unsigned"
+f:\test\edffcheckfp\analyzefp.cpp(392): warning C4305: "Argument": Verkürzung von "int" in "const _Elem"
           with
           [
               _Elem=char
           ]
-f:\test\edffcheckfp\analyzefp.cpp(349): warning C4309: "Argument": Verkürzung eines konstanten Wertes
+f:\test\edffcheckfp\analyzefp.cpp(392): warning C4309: "Argument": Verkürzung eines konstanten Wertes
      Bibliothek "F:\Test\EDFFCheckFP\Release\EDFFCheckFP.lib" und Objekt "F:\Test\EDFFCheckFP\Release\EDFFCheckFP.exp" werden erstellt.
   Code wird generiert.
-  19 of 390 functions ( 4.9%) were compiled, the rest were copied from previous compilation.
+  2 of 397 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    12 functions had inline decision re-evaluated but remain unchanged
+    6 functions had inline decision re-evaluated but remain unchanged
   Codegenerierung ist abgeschlossen.
   EDFFCheckFP.vcxproj -> F:\Test\EDFFCheckFP\Release\EDFFCheckFP.dll

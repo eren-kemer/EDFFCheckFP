@@ -3,7 +3,10 @@
 
 extern "C" IMAGE_DOS_HEADER __ImageBase;
 
+bool blink;
 bool debugMode, initialSidLoad;
+
+int disCount;
 
 ifstream sidDatei;
 char DllPathFile[_MAX_PATH];
@@ -163,9 +166,9 @@ void CcheckFPPlugin::getSids(string airport) {
 	}
 }
 
-vector<string> CcheckFPPlugin::validizeSid() {
+// Does the checking and magic stuff, so everything will be alright, when this is finished! Or not. Who knows?
+vector<string> CcheckFPPlugin::validizeSid(CFlightPlan flightPlan) {
 	vector<string> returnValid{};		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
-	CFlightPlan flightPlan = FlightPlanSelectASEL();
 	string FlightPlanString = flightPlan.GetFlightPlanData().GetRoute();
 	int RFL = flightPlan.GetFlightPlanData().GetFinalAltitude();
 	returnValid.push_back(flightPlan.GetCallsign());
@@ -243,7 +246,7 @@ vector<string> CcheckFPPlugin::validizeSid() {
 	if (!valid) {
 		returnValid.push_back("Invalid");
 		returnValid.push_back("No valid SID found!");
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 4; i++) {
 			returnValid.push_back("No");
 		}
 	}
@@ -269,17 +272,23 @@ void CcheckFPPlugin::OnGetTagItem(CFlightPlan FlightPlan, CRadarTarget RadarTarg
 		int RFL = FlightPlan.GetFlightPlanData().GetFinalAltitude();
 
 		*pColorCode = TAG_COLOR_RGB_DEFINED;
-
-		for (int i = 0; i < sidName.size(); i++) {
-			vector<string> messageBuffer{ validizeSid()};		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
-			if (messageBuffer.at(6) == "Passed") {
-				*pRGB = TAG_GREEN;
-				strcpy_s(sItemString, 16, "OK!");
-				break;
-			}
-			else {
-				*pRGB = TAG_RED;
-				strcpy_s(sItemString, 16, "FPL");
+		string fpType{ FlightPlan.GetFlightPlanData().GetPlanType() };
+		if (fpType == "V") {
+			*pRGB = TAG_GREEN;
+			strcpy_s(sItemString, 16, "VFR");
+		} else {
+			for (int i = 0; i < sidName.size(); i++) {
+				vector<string> messageBuffer{ validizeSid(FlightPlan) };		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
+				if (messageBuffer.at(6) == "Passed") {
+					*pRGB = TAG_GREEN;
+					strcpy_s(sItemString, 16, "OK!");
+					break;
+				}
+				else {
+					*pRGB = TAG_RED;
+					string code = getFails(validizeSid(FlightPlan));
+					strcpy_s(sItemString, 16, code.c_str());
+				}
 			}
 		}
 
@@ -323,7 +332,7 @@ bool CcheckFPPlugin::OnCompileCommand(const char * sCommandLine) {
 
 // Sends to you, which checks were failed and which were passed on the selected aircraft
 void CcheckFPPlugin::checkFPDetail() {	
-	vector<string> messageBuffer{ validizeSid() };		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
+	vector<string> messageBuffer{ validizeSid(FlightPlanSelectASEL()) };		// 0 = Callsign, 1 = valid/invalid SID, 2 = SID Name, 3 = Even/Odd, 4 = Minimum Flight Level, 5 = Maximum Flight Level, 6 = Passed
 	sendMessage(messageBuffer.at(0), "Checking...");
 	string buffer{ messageBuffer.at(1) };
 	if (messageBuffer.at(1) == "Valid") {
@@ -342,7 +351,41 @@ void CcheckFPPlugin::checkFPDetail() {
 	sendMessage(messageBuffer.at(0), buffer);
 }
 
+string CcheckFPPlugin::getFails(vector<string> messageBuffer) {
+	string fail[4];
+	if (messageBuffer.at(1) == "Invalid") {
+		fail[0] = "SID";
+	} else {
+		fail[0] = "FPL";
+	}
+	if (messageBuffer.at(3).find_first_of("Failed") == 0) {
+		fail[1] = "E/O";
+	} else {
+		fail[1] = "FPL";
+	}
+	if (messageBuffer.at(4).find_first_of("Failed") == 0) {
+		fail[2] = "MIN";
+	} else {
+		fail[2] = "FPL";
+	}
+	if (messageBuffer.at(5).find_first_of("Failed") == 0) {
+		fail[3] = "MAX";
+	} else {
+		fail[3] = "FPL";
+	}
+	return fail[disCount];
+}
+
 void CcheckFPPlugin::OnTimer(int Counter) {
+
+	blink = !blink;
+
+	if (disCount < 3) {
+		disCount++;
+	} else {
+		disCount = 0;
+	}
+
 	// Loading proper Sids, when logged in
 	if (GetConnectionType() != CONNECTION_TYPE_NO && !initialSidLoad) {
 		string callsign{ ControllerMyself().GetCallsign() };
