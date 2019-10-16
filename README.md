@@ -24,7 +24,6 @@ Known "features":
 
 Things to come:
 - conditional SIDs, e.g. "Odd for airports with this identifier", "Prop only"
-- Failure criteria directly in the list (alternating text or so)
 - the possibility to save your own "SID-config", e.g. for CTR-controllers.
 
 
